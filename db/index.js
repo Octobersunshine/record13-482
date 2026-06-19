@@ -1,4 +1,18 @@
+const { AsyncLocalStorage } = require('async_hooks');
 const timingStore = require('../utils/timingStore');
+
+const asyncLocalStorage = new AsyncLocalStorage();
+
+function getCurrentRequestId() {
+  try {
+    const store = asyncLocalStorage.getStore();
+    return store ? store.requestId : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+module.exports.asyncLocalStorage = asyncLocalStorage;
 
 let users = [
   { id: 1, name: '张三', email: 'zhangsan@example.com', created_at: new Date().toISOString() },
@@ -38,6 +52,7 @@ function safeSubstring(str, maxLen = 200) {
 
 function createDbRecord(operation, sql, params, durationMs, error) {
   const record = {
+    requestId: getCurrentRequestId(),
     operation,
     sql: safeSubstring(sql, 200),
     params: safeStringify(params, 200),
@@ -290,5 +305,6 @@ module.exports = {
   run,
   get,
   all,
-  exec
+  exec,
+  asyncLocalStorage
 };

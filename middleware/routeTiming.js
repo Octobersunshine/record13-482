@@ -1,4 +1,5 @@
 const timingStore = require('../utils/timingStore');
+const { asyncLocalStorage } = require('../db');
 
 function routeTiming(req, res, next) {
   const startTime = process.hrtime.bigint();
@@ -7,6 +8,12 @@ function routeTiming(req, res, next) {
 
   req.requestId = requestId;
   req.startTime = startTime;
+
+  timingStore.beginRequest(requestId, {
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip
+  });
 
   const recordTiming = (eventType, error) => {
     if (recorded) return;
@@ -33,12 +40,15 @@ function routeTiming(req, res, next) {
 
     timingStore.addRouteTiming(record);
 
+    const isSlow = record.duration >= timingStore.getConfig().slowRequestThresholdMs;
+    const slowLabel = isSlow ? ' [SLOW]' : '';
+
     if (error) {
-      console.log(`[Route] ${record.method} ${record.path} - ${record.duration}ms - ${record.event} - Status: ${record.statusCode} - Error: ${record.error}`);
+      console.log(`[Route]${slowLabel} ${record.method} ${record.path} - ${record.duration}ms - ${record.event} - Status: ${record.statusCode} - Error: ${record.error}`);
     } else if (eventType === 'close') {
-      console.log(`[Route] ${record.method} ${record.path} - ${record.duration}ms - CONNECTION_CLOSED - Status: ${record.statusCode}`);
+      console.log(`[Route]${slowLabel} ${record.method} ${record.path} - ${record.duration}ms - CONNECTION_CLOSED - Status: ${record.statusCode}`);
     } else {
-      console.log(`[Route] ${record.method} ${record.path} - ${record.duration}ms - Status: ${record.statusCode}`);
+      console.log(`[Route]${slowLabel} ${record.method} ${record.path} - ${record.duration}ms - Status: ${record.statusCode}`);
     }
   };
 
@@ -57,12 +67,14 @@ function routeTiming(req, res, next) {
   });
 
   if (next) {
-    try {
-      next();
-    } catch (error) {
-      recordTiming('next_error', error);
-      throw error;
-    }
+    asyncLocalStorage.run({ requestId }, () => {
+      try {
+        next();
+      } catch (error) {
+        recordTiming('next_error', error);
+        throw error;
+      }
+    });
   }
 }
 

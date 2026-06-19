@@ -1,0 +1,95 @@
+{
+  "exportedAt": "2026-06-19T19:30:48.183Z",
+  "requestId": "l9j2f70a",
+  "summary": {
+    "method": "GET",
+    "path": "/",
+    "url": "/api/posts",
+    "statusCode": 200,
+    "totalDurationMs": 59.875,
+    "dbOpsCount": 2,
+    "totalDbTimeMs": 56.735,
+    "slowDbOpsCount": 2,
+    "routePercentage": 5.24,
+    "dbPercentage": 94.76
+  },
+  "timing": {
+    "route": {
+      "event": "finish",
+      "duration": 59.875,
+      "timestamp": "2026-06-19T19:30:48.182Z"
+    },
+    "dbOperations": [
+      {
+        "seq": 1,
+        "operation": "ALL",
+        "duration": 40.806,
+        "isSlow": true,
+        "sql": "\n      SELECT p.id, p.title, p.content, p.user_id, p.created_at, u.name as author_name\n      FROM posts p\n      LEFT JOIN users u ON p.user_id = u.id\n      ORDER BY p.created_at DESC\n      LIMIT ? OFF",
+        "params": "[50,0]",
+        "error": null,
+        "timestamp": "2026-06-19T19:30:48.164Z"
+      },
+      {
+        "seq": 2,
+        "operation": "GET",
+        "duration": 15.929,
+        "isSlow": true,
+        "sql": "SELECT COUNT(*) as total FROM posts",
+        "params": "[]",
+        "error": null,
+        "timestamp": "2026-06-19T19:30:48.180Z"
+      }
+    ],
+    "slowDbOperations": [
+      {
+        "seq": 1,
+        "operation": "ALL",
+        "duration": 40.806,
+        "sql": "\n      SELECT p.id, p.title, p.content, p.user_id, p.created_at, u.name as author_name\n      FROM posts p\n      LEFT JOIN users u ON p.user_id = u.id\n      ORDER BY p.created_at DESC\n      LIMIT ? OFF",
+        "params": "[50,0]",
+        "error": null,
+        "timestamp": "2026-06-19T19:30:48.164Z"
+      },
+      {
+        "seq": 2,
+        "operation": "GET",
+        "duration": 15.929,
+        "sql": "SELECT COUNT(*) as total FROM posts",
+        "params": "[]",
+        "error": null,
+        "timestamp": "2026-06-19T19:30:48.180Z"
+      }
+    ]
+  },
+  "raw": {
+    "route": {
+      "requestId": "l9j2f70a",
+      "method": "GET",
+      "path": "/",
+      "url": "/api/posts",
+      "statusCode": 200,
+      "event": "finish",
+      "duration": 59.875,
+      "timestamp": "2026-06-19T19:30:48.182Z"
+    },
+    "dbOperations": [
+      {
+        "requestId": "l9j2f70a",
+        "operation": "ALL",
+        "sql": "\n      SELECT p.id, p.title, p.content, p.user_id, p.created_at, u.name as author_name\n      FROM posts p\n      LEFT JOIN users u ON p.user_id = u.id\n      ORDER BY p.created_at DESC\n      LIMIT ? OFF",
+        "params": "[50,0]",
+        "duration": 40.806,
+        "timestamp": "2026-06-19T19:30:48.164Z"
+      },
+      {
+        "requestId": "l9j2f70a",
+        "operation": "GET",
+        "sql": "SELECT COUNT(*) as total FROM posts",
+        "params": "[]",
+        "duration": 15.929,
+        "timestamp": "2026-06-19T19:30:48.180Z"
+      }
+    ]
+  }
+}

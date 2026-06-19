@@ -1,0 +1,68 @@
+{
+  "exportedAt": "2026-06-19T19:30:47.795Z",
+  "requestId": "k1mwe1lp",
+  "summary": {
+    "method": "GET",
+    "path": "/",
+    "url": "/api/users",
+    "statusCode": 200,
+    "totalDurationMs": 43.234,
+    "dbOpsCount": 1,
+    "totalDbTimeMs": 42.017,
+    "slowDbOpsCount": 1,
+    "routePercentage": 2.81,
+    "dbPercentage": 97.19
+  },
+  "timing": {
+    "route": {
+      "event": "finish",
+      "duration": 43.234,
+      "timestamp": "2026-06-19T19:30:47.795Z"
+    },
+    "dbOperations": [
+      {
+        "seq": 1,
+        "operation": "ALL",
+        "duration": 42.017,
+        "isSlow": true,
+        "sql": "SELECT id, name, email, created_at FROM users LIMIT 100",
+        "params": "[]",
+        "error": null,
+        "timestamp": "2026-06-19T19:30:47.794Z"
+      }
+    ],
+    "slowDbOperations": [
+      {
+        "seq": 1,
+        "operation": "ALL",
+        "duration": 42.017,
+        "sql": "SELECT id, name, email, created_at FROM users LIMIT 100",
+        "params": "[]",
+        "error": null,
+        "timestamp": "2026-06-19T19:30:47.794Z"
+      }
+    ]
+  },
+  "raw": {
+    "route": {
+      "requestId": "k1mwe1lp",
+      "method": "GET",
+      "path": "/",
+      "url": "/api/users",
+      "statusCode": 200,
+      "event": "finish",
+      "duration": 43.234,
+      "timestamp": "2026-06-19T19:30:47.795Z"
+    },
+    "dbOperations": [
+      {
+        "requestId": "k1mwe1lp",
+        "operation": "ALL",
+        "sql": "SELECT id, name, email, created_at FROM users LIMIT 100",
+        "params": "[]",
+        "duration": 42.017,
+        "timestamp": "2026-06-19T19:30:47.794Z"
+      }
+    ]
+  }
+}

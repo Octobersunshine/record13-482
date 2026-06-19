@@ -1,0 +1,68 @@
+{
+  "exportedAt": "2026-06-19T19:30:47.994Z",
+  "requestId": "ezy08roa",
+  "summary": {
+    "method": "GET",
+    "path": "/",
+    "url": "/api/users",
+    "statusCode": 200,
+    "totalDurationMs": 47.802,
+    "dbOpsCount": 1,
+    "totalDbTimeMs": 45.909,
+    "slowDbOpsCount": 1,
+    "routePercentage": 3.96,
+    "dbPercentage": 96.04
+  },
+  "timing": {
+    "route": {
+      "event": "finish",
+      "duration": 47.802,
+      "timestamp": "2026-06-19T19:30:47.994Z"
+    },
+    "dbOperations": [
+      {
+        "seq": 1,
+        "operation": "ALL",
+        "duration": 45.909,
+        "isSlow": true,
+        "sql": "SELECT id, name, email, created_at FROM users LIMIT 100",
+        "params": "[]",
+        "error": null,
+        "timestamp": "2026-06-19T19:30:47.993Z"
+      }
+    ],
+    "slowDbOperations": [
+      {
+        "seq": 1,
+        "operation": "ALL",
+        "duration": 45.909,
+        "sql": "SELECT id, name, email, created_at FROM users LIMIT 100",
+        "params": "[]",
+        "error": null,
+        "timestamp": "2026-06-19T19:30:47.993Z"
+      }
+    ]
+  },
+  "raw": {
+    "route": {
+      "requestId": "ezy08roa",
+      "method": "GET",
+      "path": "/",
+      "url": "/api/users",
+      "statusCode": 200,
+      "event": "finish",
+      "duration": 47.802,
+      "timestamp": "2026-06-19T19:30:47.994Z"
+    },
+    "dbOperations": [
+      {
+        "requestId": "ezy08roa",
+        "operation": "ALL",
+        "sql": "SELECT id, name, email, created_at FROM users LIMIT 100",
+        "params": "[]",
+        "duration": 45.909,
+        "timestamp": "2026-06-19T19:30:47.993Z"
+      }
+    ]
+  }
+}
