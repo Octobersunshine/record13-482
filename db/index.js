@@ -19,43 +19,82 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function safeStringify(obj, maxLen = 200) {
+  try {
+    const str = JSON.stringify(obj);
+    return str ? str.substring(0, maxLen) : '';
+  } catch (e) {
+    return '[Unserializable]';
+  }
+}
+
+function safeSubstring(str, maxLen = 200) {
+  try {
+    return str ? str.substring(0, maxLen) : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+function createDbRecord(operation, sql, params, durationMs, error) {
+  const record = {
+    operation,
+    sql: safeSubstring(sql, 200),
+    params: safeStringify(params, 200),
+    duration: Number(durationMs.toFixed(3)),
+    timestamp: new Date().toISOString()
+  };
+
+  if (error) {
+    record.error = error.message || String(error);
+    record.errorType = error.constructor ? error.constructor.name : 'Unknown';
+  }
+
+  return record;
+}
+
 function measureDbTime(operation, sql, params, fn) {
   const startTime = process.hrtime.bigint();
-  return fn()
-    .then(result => {
-      const endTime = process.hrtime.bigint();
-      const durationMs = Number(endTime - startTime) / 1e6;
+  let recorded = false;
 
-      const record = {
-        operation,
-        sql: sql.substring(0, 200),
-        params: JSON.stringify(params).substring(0, 200),
-        duration: Number(durationMs.toFixed(3)),
-        timestamp: new Date().toISOString()
-      };
+  const recordAndLog = (error) => {
+    if (recorded) return;
+    recorded = true;
 
-      timingStore.addDbTiming(record);
+    const endTime = process.hrtime.bigint();
+    const durationMs = Number(endTime - startTime) / 1e6;
+    const record = createDbRecord(operation, sql, params, durationMs, error);
+
+    timingStore.addDbTiming(record);
+
+    if (error) {
+      console.log(`[DB] ${operation} FAILED - ${record.duration}ms - ${record.errorType}: ${record.error}`);
+    } else {
       console.log(`[DB] ${operation} - ${record.duration}ms`);
+    }
+  };
+
+  try {
+    const result = fn();
+
+    if (result && typeof result.then === 'function') {
+      return result
+        .then(value => {
+          recordAndLog(null);
+          return value;
+        })
+        .catch(error => {
+          recordAndLog(error);
+          throw error;
+        });
+    } else {
+      recordAndLog(null);
       return result;
-    })
-    .catch(error => {
-      const endTime = process.hrtime.bigint();
-      const durationMs = Number(endTime - startTime) / 1e6;
-
-      const record = {
-        operation,
-        sql: sql.substring(0, 200),
-        params: JSON.stringify(params).substring(0, 200),
-        duration: Number(durationMs.toFixed(3)),
-        error: error.message,
-        timestamp: new Date().toISOString()
-      };
-
-      timingStore.addDbTiming(record);
-      console.log(`[DB] ${operation} FAILED - ${record.duration}ms - Error: ${error.message}`);
-
-      throw error;
-    });
+    }
+  } catch (error) {
+    recordAndLog(error);
+    throw error;
+  }
 }
 
 async function run(sql, params = []) {

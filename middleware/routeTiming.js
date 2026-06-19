@@ -3,11 +3,15 @@ const timingStore = require('../utils/timingStore');
 function routeTiming(req, res, next) {
   const startTime = process.hrtime.bigint();
   const requestId = Math.random().toString(36).substring(2, 10);
+  let recorded = false;
 
   req.requestId = requestId;
   req.startTime = startTime;
 
-  res.on('finish', () => {
+  const recordTiming = (eventType, error) => {
+    if (recorded) return;
+    recorded = true;
+
     const endTime = process.hrtime.bigint();
     const durationMs = Number(endTime - startTime) / 1e6;
 
@@ -17,15 +21,49 @@ function routeTiming(req, res, next) {
       path: req.route ? req.route.path : req.path,
       url: req.originalUrl,
       statusCode: res.statusCode,
+      event: eventType,
       duration: Number(durationMs.toFixed(3)),
       timestamp: new Date().toISOString()
     };
 
+    if (error) {
+      record.error = error.message || String(error);
+      record.errorType = error.constructor ? error.constructor.name : 'Unknown';
+    }
+
     timingStore.addRouteTiming(record);
-    console.log(`[Route] ${record.method} ${record.path} - ${record.duration}ms - Status: ${record.statusCode}`);
+
+    if (error) {
+      console.log(`[Route] ${record.method} ${record.path} - ${record.duration}ms - ${record.event} - Status: ${record.statusCode} - Error: ${record.error}`);
+    } else if (eventType === 'close') {
+      console.log(`[Route] ${record.method} ${record.path} - ${record.duration}ms - CONNECTION_CLOSED - Status: ${record.statusCode}`);
+    } else {
+      console.log(`[Route] ${record.method} ${record.path} - ${record.duration}ms - Status: ${record.statusCode}`);
+    }
+  };
+
+  res.on('finish', () => {
+    recordTiming('finish', null);
   });
 
-  next();
+  res.on('close', () => {
+    if (!recorded) {
+      recordTiming('close', null);
+    }
+  });
+
+  res.on('error', (error) => {
+    recordTiming('error', error);
+  });
+
+  if (next) {
+    try {
+      next();
+    } catch (error) {
+      recordTiming('next_error', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = routeTiming;
