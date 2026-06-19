@@ -1,0 +1,13 @@
+{
+  "name": "node-api-timing",
+  "version": "1.0.0",
+  "description": "Node.js API with route and database timing tracking",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js"
+  },
+  "dependencies": {
+    "express": "^4.22.2"
+  }
+}

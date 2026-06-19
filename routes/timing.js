@@ -1,0 +1,68 @@
+const express = require('express');
+const router = express.Router();
+const timingStore = require('../utils/timingStore');
+
+router.get('/summary', (req, res) => {
+  const summary = timingStore.getCombinedSummary();
+  res.json({ success: true, data: summary });
+});
+
+router.get('/routes', (req, res) => {
+  const summary = timingStore.getRouteSummary();
+  res.json({ success: true, data: summary });
+});
+
+router.get('/database', (req, res) => {
+  const summary = timingStore.getDbSummary();
+  res.json({ success: true, data: summary });
+});
+
+router.delete('/clear', (req, res) => {
+  timingStore.clear();
+  res.json({ success: true, message: 'All timing records cleared' });
+});
+
+router.get('/report', (req, res) => {
+  const summary = timingStore.getCombinedSummary();
+  const { overall, route, database } = summary;
+
+  let report = '='.repeat(70) + '\n';
+  report += 'API Performance Report\n';
+  report += '='.repeat(70) + '\n\n';
+
+  report += 'OVERALL SUMMARY\n';
+  report += '-'.repeat(70) + '\n';
+  report += `Total Requests:      ${overall.totalRequests}\n`;
+  report += `Total DB Operations: ${overall.totalDbOperations}\n`;
+  report += `Total Time:          ${overall.totalTimeMs.toFixed(3)}ms\n`;
+  report += `Route Time:          ${overall.routeTimePercentage}%\n`;
+  report += `DB Time:             ${overall.dbTimePercentage}%\n\n`;
+
+  report += 'ROUTE PERFORMANCE\n';
+  report += '-'.repeat(70) + '\n';
+  report += `Total: ${route.count} requests | Avg: ${route.avg.toFixed(3)}ms | Min: ${route.min.toFixed(3)}ms | Max: ${route.max.toFixed(3)}ms\n\n`;
+
+  report += 'By Route:\n';
+  Object.keys(route.byRoute).forEach(key => {
+    const r = route.byRoute[key];
+    report += `  ${key.padEnd(35)} Count: ${String(r.count).padStart(4)} | Avg: ${r.avg.toFixed(3).padStart(8)}ms | Min: ${r.min.toFixed(3).padStart(8)}ms | Max: ${r.max.toFixed(3).padStart(8)}ms\n`;
+  });
+  report += '\n';
+
+  report += 'DATABASE PERFORMANCE\n';
+  report += '-'.repeat(70) + '\n';
+  report += `Total: ${database.count} operations | Avg: ${database.avg.toFixed(3)}ms | Min: ${database.min.toFixed(3)}ms | Max: ${database.max.toFixed(3)}ms\n\n`;
+
+  report += 'By Operation:\n';
+  Object.keys(database.byOperation).forEach(key => {
+    const d = database.byOperation[key];
+    report += `  ${key.padEnd(10)} Count: ${String(d.count).padStart(4)} | Avg: ${d.avg.toFixed(3).padStart(8)}ms | Min: ${d.min.toFixed(3).padStart(8)}ms | Max: ${d.max.toFixed(3).padStart(8)}ms\n`;
+  });
+
+  report += '\n' + '='.repeat(70) + '\n';
+
+  res.set('Content-Type', 'text/plain');
+  res.send(report);
+});
+
+module.exports = router;
